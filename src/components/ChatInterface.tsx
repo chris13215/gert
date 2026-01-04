@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Send, Loader2, Paperclip, X } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Paperclip, X, Code2 } from 'lucide-react';
 import {
   AIModel,
   Message,
@@ -8,6 +8,9 @@ import {
   MessageContent,
   MessagePart,
 } from '../types';
+import { Canvas } from './Canvas/Canvas';
+import { useCanvas } from '../hooks/useCanvas';
+import { detectCodeBlocks, filterMajorBlocks } from '../utils/codeDetector';
 
 const hasFiles = (dataTransfer?: DataTransfer | null) =>
   !!dataTransfer?.types?.includes('Files');
@@ -108,6 +111,17 @@ export default function ChatInterface({ model, onBack }: ChatInterfaceProps) {
   const [statusMessage, setStatusMessage] = useState('Ready');
   const streamingMessageIndexRef = useRef<number | null>(null);
 
+  const {
+    isOpen: isCanvasOpen,
+    openCanvas,
+    closeCanvas,
+    toggleCanvas,
+    blocks: canvasBlocks,
+    setBlocks: setCanvasBlocks,
+    addBlocks,
+    createArtifact,
+  } = useCanvas();
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -123,6 +137,53 @@ export default function ChatInterface({ model, onBack }: ChatInterfaceProps) {
       textareaRef.current.style.height = `${newHeight}px`;
     }
   }, [input]);
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role !== 'assistant') return;
+
+    const content = typeof lastMessage.content === 'string'
+      ? lastMessage.content
+      : (Array.isArray(lastMessage.content)
+          ? lastMessage.content.map(p => p.type === 'text' ? p.text : '').join('')
+          : '');
+
+    const detectedBlocks = detectCodeBlocks(content, messages.length - 1);
+
+    if (detectedBlocks.length > 0) {
+      const majorBlocks = filterMajorBlocks(detectedBlocks, 3);
+
+      if (majorBlocks.length > 0) {
+        addBlocks(majorBlocks);
+
+        majorBlocks.forEach((block) => {
+          createArtifact(block, messages.length - 1);
+        });
+      }
+    }
+  }, [messages, addBlocks, createArtifact]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        toggleCanvas();
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        if (canvasBlocks.length > 0) {
+          const activeBlock = canvasBlocks[0];
+          navigator.clipboard.writeText(activeBlock.code);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleCanvas, canvasBlocks]);
 
   const renderMarkdown = (text: string): string => {
     if (window.marked && window.DOMPurify) {
@@ -708,8 +769,8 @@ export default function ChatInterface({ model, onBack }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="flex h-screen bg-[#131314] text-[#e3e3e3]">
-      <div className="hidden md:flex md:w-64 bg-[#1e1f20] border-r border-[#363739] flex-col p-4">
+    <div className="flex h-screen" style={{ background: 'var(--bg-app)', color: 'var(--text-main)' }}>
+      <div className="hidden md:flex md:w-64 border-r flex-col p-4" style={{ background: 'var(--bg-panel)', borderColor: 'var(--border-subtle)' }}>
         <div className="mb-6">
           <div className="text-2xl font-semibold mb-2 font-robotic">AI Nigga</div>
           <div className="flex items-center gap-2 px-3 py-2 bg-[#28292a] rounded-lg border border-[#363739]">
@@ -733,9 +794,38 @@ export default function ChatInterface({ model, onBack }: ChatInterfaceProps) {
           <ArrowLeft size={18} />
           <span>Back to Models</span>
         </button>
+
+        <button
+          onClick={toggleCanvas}
+          disabled={canvasBlocks.length === 0}
+          className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-[#28292a] transition-all text-[#9da0a5] hover:text-[#e3e3e3] disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            borderColor: canvasBlocks.length > 0 ? 'var(--accent-primary)' : 'transparent',
+            border: canvasBlocks.length > 0 ? '1px solid' : 'none',
+          }}
+        >
+          <Code2 size={18} className={isCanvasOpen ? 'animate-rotate' : ''} />
+          <span>Canvas</span>
+          {canvasBlocks.length > 0 && (
+            <span
+              className="ml-auto px-2 py-0.5 text-xs rounded-full font-semibold"
+              style={{
+                background: 'var(--accent-primary)',
+                color: 'white',
+              }}
+            >
+              {canvasBlocks.length}
+            </span>
+          )}
+        </button>
       </div>
 
-      <div className="flex-1 flex flex-col">
+      <div
+        className="flex-1 flex flex-col transition-all duration-300"
+        style={{
+          width: isCanvasOpen && typeof window !== 'undefined' && window.innerWidth >= 1024 ? '60%' : '100%',
+        }}
+      >
         <div className="md:hidden bg-[#1e1f20] border-b border-[#363739] px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => {
@@ -755,6 +845,18 @@ export default function ChatInterface({ model, onBack }: ChatInterfaceProps) {
               </div>
             </div>
           </div>
+          <button
+            onClick={toggleCanvas}
+            disabled={canvasBlocks.length === 0}
+            className="p-2 rounded-lg hover:bg-[#28292a] transition-colors text-[#9da0a5] hover:text-[#e3e3e3] disabled:opacity-40 relative"
+          >
+            <Code2 size={20} />
+            {canvasBlocks.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs flex items-center justify-center font-semibold" style={{ background: 'var(--accent-primary)', color: 'white' }}>
+                {canvasBlocks.length}
+              </span>
+            )}
+          </button>
         </div>
         <div className="flex-1 overflow-y-auto px-4 md:px-6 py-8">
           {messages.length === 0 ? (
@@ -988,6 +1090,10 @@ export default function ChatInterface({ model, onBack }: ChatInterfaceProps) {
           </div>
         </div>
       </div>
+
+      {isCanvasOpen && canvasBlocks.length > 0 && (
+        <Canvas blocks={canvasBlocks} onClose={closeCanvas} />
+      )}
     </div>
   );
 }

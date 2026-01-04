@@ -7,13 +7,13 @@ interface ModelGridProps {
 
 export default function ModelGrid({ models, onSelectModel }: ModelGridProps) {
   return (
-    <div className="min-h-screen bg-[#131314] text-[#e3e3e3]">
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-semibold mb-4 font-robotic">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-robotic text-gradient">
             AI Nigga
           </h1>
-          <p className="text-lg text-[#9da0a5]">
+          <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
             Choose your AI assistant to start chatting
           </p>
         </div>
@@ -22,29 +22,65 @@ export default function ModelGrid({ models, onSelectModel }: ModelGridProps) {
           {models.map((model) => (
             <div
               key={model.id}
-              className="model-card bg-[#28292a] border border-[#363739] rounded-[16px] p-6 transition-all duration-300 hover:bg-[#353638] hover:border-[#6366f1] hover:shadow-lg hover:-translate-y-1 cursor-pointer"
+              className="model-card glass rounded-2xl p-6 cursor-pointer group relative"
               onClick={() => onSelectModel(model.id)}
+              style={{
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+              }}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="text-4xl">{model.icon}</div>
-                <span className="px-3 py-1 text-xs font-medium rounded-full bg-[#6366f1]/20 text-[#6366f1]">
-                  {model.category}
-                </span>
-              </div>
+              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(59, 130, 246, 0.05))',
+                }}
+              />
 
-              <h3 className="text-xl font-semibold mb-2">{model.name}</h3>
+              <div className="relative z-10">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="text-4xl group-hover:scale-110 transition-transform duration-300">
+                    {model.icon}
+                  </div>
+                  <span
+                    className="px-3 py-1 text-xs font-medium rounded-full"
+                    style={{
+                      background: 'rgba(124, 58, 237, 0.2)',
+                      color: 'var(--accent-primary)',
+                      border: '1px solid rgba(124, 58, 237, 0.3)',
+                    }}
+                  >
+                    {model.category}
+                  </span>
+                </div>
 
-              <p className="text-[#9da0a5] text-sm mb-4">
-                {model.description}
-              </p>
+                <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-main)' }}>
+                  {model.name}
+                </h3>
 
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-[#9da0a5] capitalize">
-                  by {model.provider}
-                </span>
-                <button className="px-4 py-2 bg-[#6366f1] text-white rounded-lg font-medium text-sm hover:bg-[#5558e3] transition-colors">
-                  Launch Chat
-                </button>
+                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  {model.description}
+                </p>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs capitalize" style={{ color: 'var(--text-secondary)' }}>
+                    by {model.provider}
+                  </span>
+                  <button
+                    className="btn-ripple px-4 py-2 rounded-lg font-medium text-sm text-white transition-all"
+                    style={{
+                      background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.filter = 'brightness(1.1)';
+                      e.currentTarget.style.boxShadow = 'var(--shadow-glow)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.filter = 'brightness(1)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    Launch Chat
+                  </button>
+                </div>
               </div>
             </div>
           ))}
