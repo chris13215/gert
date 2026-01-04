@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* New Vibrant Theme Variables */
+  --bg-app: #0a0a0f;
+  --bg-panel: #13141b;
+  --bg-surface: #1a1b26;
+  --bg-surface-hover: #222336;
+  
+  --text-main: #f8f9fa;
+  --text-secondary: #a1a1aa;
+  --text-accent: #c4b5fd;
+  
+  --accent-primary: #7c3aed;
+  --accent-secondary: #3b82f6;
+  --accent-glow: #a78bfa;
+  
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(124, 58, 237, 0.3);
+  
+  --glass-bg: rgba(19, 20, 27, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  
+  --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.2);
+}
+
+@layer utilities {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+  }
+  
+  .glass-hover:hover {
+    background: rgba(124, 58, 237, 0.1);
+    border-color: var(--border-highlight);
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, #f8f9fa, #c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  }
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  scrollbar-gutter: stable;
+  margin: 0;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-app);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Base changes */
+* {
+  border-color: var(--border-subtle);
+}
+
+/* Animation utilities */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Markdown/Prose Styles Override */
+.prose {
+  color: var(--text-main);
+  max-width: none;
+}
+
+.prose pre {
+  background: #111116;
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.prose code {
+  color: var(--text-accent);
+  background: rgba(124, 58, 237, 0.1);
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-family: monospace;
+}
+
+.prose a {
+  color: var(--accent-secondary);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent-secondary);
+}
+
+.prose a:hover {
+  color: var(--accent-glow);
+  border-bottom-style: solid;
+}
+
+.prose ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+}
+
+.prose ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+}

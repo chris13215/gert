@@ -1,0 +1,284 @@
+📋 AI Webchat Canvas Transformation Plan
+Current State Analysis
+Your app is a React + TypeScript AI chat interface using:
+
+Tech Stack: Vite, React 18, TypeScript, Tailwind CSS, Lucide icons
+AI Integration: Puter SDK supporting multiple models (Claude Opus 4.5, GPT 5.2, Grok 3, Gemini, etc.)
+Key Features: File attachments, markdown rendering, streaming responses, code syntax highlighting
+Current Theme: Dark (#131314 bg) with indigo accent (#6366f1)
+🎨 Proposed Transformation
+1. Visual Design Overhaul
+Color Palette Enhancement
+Current Theme → New Vibrant Theme
+
+Background Layers:
+• Main BG: #131314 → #0a0a0f (Deeper, richer)
+• Panel BG: #1e1f20 → #13141b (Subtle purple tint)
+• Surface: #28292a → #1a1b26 (Cooler tone)
+
+Accent Colors (Vibrant Purples/Blues):
+• Primary: #6366f1 → #7c3aed (Vivid purple)
+• Secondary: #7f84ff → #a78bfa (Bright lavender)
+• Tertiary: New → #3b82f6 (Electric blue)
+• Glow Effects: Linear gradients (purple→blue)
+
+Text Colors:
+• Primary: #e3e3e3 → #f8f9fa (Brighter)
+• Secondary: #9da0a5 → #a1a1aa (Neutral zinc)
+• Accent Text: New → #c4b5fd (Soft purple)
+Modern UI Elements
+Glassmorphism effects on panels (backdrop-blur with semi-transparent backgrounds)
+Gradient borders with purple-to-blue transitions
+Animated glows on interactive elements
+Smooth micro-interactions (hover states, button ripples)
+Floating shadows with purple/blue hues instead of gray
+Neon accent lines for visual hierarchy
+2. Canvas/Artifacts System (Claude AI-style)
+Architecture
+ChatInterface (Parent)
+├── MessagesPanel (Left/Full) - 60% width when canvas open
+└── CanvasPanel (Right) - 40% width, slides in from right
+    ├── CanvasHeader (Title, Actions, Close Button)
+    ├── CanvasContent (Code/Preview)
+    │   ├── CodeEditor (Read-only, syntax highlighted)
+    │   └── PreviewFrame (Live HTML/CSS/JS preview)
+    └── CanvasFooter (Copy, Download, Open in New Tab)
+Features
+Auto-Detection System
+Code Detection Logic:
+1. Parse assistant messages for code blocks (```language)
+2. Detect supported languages: 
+   - HTML, CSS, JavaScript, TypeScript, React, Vue
+   - Python, Java, C++, etc.
+3. Extract code + metadata (language, filename if present)
+4. Auto-open canvas when code detected
+5. If multiple code blocks → show tabs in canvas
+Canvas States
+Closed: Full-width chat (100%)
+Opening Animation: Slide-in from right (300ms ease-out-cubic)
+Open: Split view - Chat (60%) + Canvas (40%)
+Closing Animation: Slide-out to right (200ms ease-in-cubic)
+Canvas Components
+Header Section:
+
+File icon + detected language badge
+Title: "Generated Code" or parsed filename
+Action buttons: Copy, Download, Open in New Window
+Close button (X)
+Content Section:
+
+Code View (Default):
+
+Syntax highlighting using Prism.js or highlight.js
+Line numbers
+Copy button per block
+Theme: Matches app dark purple theme
+Preview Mode (For web code):
+
+Toggle button: "Code" | "Preview"
+Live rendering in sandboxed iframe
+Only for HTML/CSS/JS/React code
+Error boundaries for safety
+Footer Section:
+
+Language/file type indicator
+Line count
+Character count
+Last updated timestamp
+Manual Controls
+Toggle Button in Chat:
+
+Position: Top-right of chat header (next to model name)
+Icon: <Code2> from Lucide
+Label: "Canvas" with badge showing code block count
+State: Disabled when no code, Active when code available
+Keyboard Shortcuts:
+
+Ctrl/Cmd + K → Toggle canvas
+Ctrl/Cmd + Shift + C → Copy code from canvas
+3. Enhanced Chat Interface
+Message Bubbles
+User Messages: Gradient background (purple → blue)
+Assistant Messages: Glass effect with subtle border glow
+Code Blocks in Chat:
+Compact preview (5 lines max)
+"View in Canvas" button overlay
+Click → opens canvas with full code
+Input Area
+Floating design with elevation shadow
+Glow effect when focused (purple/blue)
+Enhanced file attachment UI:
+Preview thumbnails with glass effect
+Drag zone with animated border
+Model Selection Grid
+Card Redesign:
+Gradient borders on hover
+Animated icon with glow
+Category badge with glass effect
+Smooth scale transform (1.0 → 1.03)
+4. Technical Implementation Plan
+Phase 1: Theme & Style Foundation (Files to modify)
+/app/src/index.css → Complete CSS overhaul
+- New CSS variables for vibrant theme
+- Glassmorphism utilities
+- Animation keyframes
+- Gradient definitions
+
+/app/tailwind.config.js → Extend with custom colors
+- Purple/blue gradient palette
+- Shadow utilities with color
+- Blur utilities
+Phase 2: Canvas Component (New files to create)
+/app/src/components/Canvas/
+├── Canvas.tsx (Main container)
+├── CanvasHeader.tsx (Top bar with controls)
+├── CanvasContent.tsx (Code/Preview display)
+├── CanvasFooter.tsx (Info bar)
+├── CodeBlock.tsx (Syntax highlighted code)
+├── PreviewFrame.tsx (Live preview iframe)
+└── canvas.types.ts (TypeScript interfaces)
+Phase 3: Integration (Files to modify)
+/app/src/components/ChatInterface.tsx
+- Add canvas state management
+- Implement code detection logic
+- Add canvas toggle controls
+- Split layout system (60/40)
+- Handle resize animations
+
+/app/src/types.ts
+- Add Canvas-related types
+- CodeBlock interface
+- CanvasState interface
+Phase 4: Visual Enhancements (Files to modify)
+/app/src/components/ModelGrid.tsx
+- Apply new theme colors
+- Add glassmorphism effects
+- Enhanced hover animations
+
+/app/src/App.tsx
+- Update overall theme provider
+- Add canvas context if needed
+5. Code Detection Algorithm
+// Pseudo-code for detection logic
+function detectCodeInMessage(content: string) {
+  const codeBlockRegex = /```(\w+)?\n([\s\S]+?)```/g;
+  const matches = [...content.matchAll(codeBlockRegex)];
+  
+  return matches.map(match => ({
+    language: match[1] || 'plaintext',
+    code: match[2].trim(),
+    id: generateId(),
+    canPreview: ['html', 'javascript', 'typescript', 'jsx', 'tsx'].includes(match[1])
+  }));
+}
+
+// Auto-open logic
+useEffect(() => {
+  if (newCodeDetected && !canvasOpen) {
+    openCanvas();
+  }
+}, [messages]);
+6. Dependencies to Add
+{
+  "prismjs": "^1.29.0",           // Syntax highlighting
+  "react-syntax-highlighter": "^15.5.0", // Alternative
+  "framer-motion": "^10.16.0",    // Smooth animations
+  "zustand": "^4.4.0"             // Optional: Canvas state management
+}
+7. Animation & Interaction Details
+Canvas Animations
+Open: Slide from right (0 → 40% width) + fade in (0 → 1 opacity)
+Close: Slide to right + fade out
+Duration: 300ms with ease-out-cubic
+Content: Stagger animation for header, content, footer (50ms delay each)
+UI Micro-interactions
+Buttons: Ripple effect on click (expanding circle)
+Code blocks: Pulse glow on copy
+Canvas toggle: Rotate icon 360° on open/close
+Tabs: Slide indicator bar (if multiple code blocks)
+8. Responsive Behavior
+Desktop (> 1024px)
+Split view: Chat 60% + Canvas 40%
+Canvas always on right
+Tablet (768px - 1024px)
+Split view: Chat 50% + Canvas 50%
+Smaller fonts, compact spacing
+Mobile (< 768px)
+Full-screen toggle: Canvas overlays chat (100% width)
+Swipe gestures to close canvas
+Floating "Code" button in chat
+9. Preview Capabilities
+Web Code Preview
+Sandboxed <iframe> with sandbox attribute
+Inject HTML/CSS/JS dynamically
+Error handling with try-catch
+Console message forwarding (optional)
+Preview Features
+Toggle between Code and Preview
+Responsive preview (desktop/mobile widths)
+Refresh button
+Open in new tab option
+10. File Structure After Implementation
+/app/src/
+├── components/
+│   ├── Canvas/
+│   │   ├── Canvas.tsx ✨ NEW
+│   │   ├── CanvasHeader.tsx ✨ NEW
+│   │   ├── CanvasContent.tsx ✨ NEW
+│   │   ├── CanvasFooter.tsx ✨ NEW
+│   │   ├── CodeBlock.tsx ✨ NEW
+│   │   ├── PreviewFrame.tsx ✨ NEW
+│   │   └── canvas.types.ts ✨ NEW
+│   ├── ChatInterface.tsx (MODIFIED - canvas integration)
+│   └── ModelGrid.tsx (MODIFIED - visual refresh)
+├── hooks/
+│   └── useCanvas.ts ✨ NEW (canvas state logic)
+├── utils/
+│   └── codeDetector.ts ✨ NEW (detection algorithms)
+├── App.tsx (MODIFIED)
+├── index.css (MODIFIED - complete theme overhaul)
+└── types.ts (MODIFIED)
+11. Key Visual Mockup (Text Description)
+Chat Interface with Canvas Open:
+
+┌─────────────────────────────────────────────────────────┐
+│  [←]  Claude Opus 4.5  [Canvas 1] 🌐                    │ Header
+├─────────────────────────────────────────────────────────┤
+│                                     │                    │
+│  [User bubble - gradient]           │  ╔══════════════╗ │
+│  "Create a React button"            │  ║ Canvas       ║ │
+│                                     │  ║ [Copy][⤢][X] ║ │
+│  [Assistant bubble - glass]         │  ╠══════════════╣ │
+│  "Here's a React button..."         │  ║              ║ │
+│                                     │  ║  ```tsx      ║ │
+│  ```tsx                             │  ║  function... ║ │
+│  function Butto...  [View→Canvas]   │  ║  ...         ║ │
+│  ```                                │  ║              ║ │
+│                                     │  ║  [Code|Preview]║
+│  [User message]                     │  ║              ║ │
+│  [Assistant response streaming...]  │  ╚══════════════╝ │
+│                                     │                    │
+├─────────────────────────────────────┼────────────────────┤
+│  [📎] [Type message...]      [Send] │                    │ Input
+└─────────────────────────────────────────────────────────┘
+     60% Chat Width                      40% Canvas Width
+12. Success Criteria
+✅ Visual Excellence:
+
+Vibrant purple/blue theme applied throughout
+Glassmorphism effects on all panels
+Smooth animations (60fps)
+Professional, modern aesthetic
+✅ Canvas Functionality:
+
+Auto-opens when code detected
+Manual toggle works smoothly
+Code syntax highlighting perfect
+Preview mode for web code works
+Multiple code blocks handled (tabs)
+✅ User Experience:
+
+Intuitive controls
+Responsive on all devices
+Fast performance (no lag)
+Accessible (keyboard navigation)
